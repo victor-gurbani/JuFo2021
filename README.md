@@ -28,9 +28,9 @@ The Android application serves as the control center for the physical cane. It h
 ## Tech Stack
 
 * **Firmware:** C++ (Arduino)
-* **Hardware:** Arduino Uno, HC-SR04 Ultrasonic Sensor, SIM900 GSM Module, HC-05 Bluetooth, Haptic Motor.
+* **Hardware:** Arduino Uno, HC-SR04 Ultrasonic Sensor, SIM900 GSM Module, HC-05 Bluetooth serial module, vibration motor, buzzer, push-button.
 * **Mobile App:** Android (MIT App Inventor)
-* **Protocols:** UART Serial Communication, AT Commands (GSM), NMEA (GPS).
+* **Protocols:** UART serial (Bluetooth SPP / Arduino `Serial`), AT commands (SIM900 SMS). The app uses the phone's location sensor (GPS/network) via App Inventor.
 
 ---
 
@@ -39,14 +39,22 @@ The Android application serves as the control center for the physical cane. It h
 ### 1. The "Virtual Cane" Algorithm
 The core of the system is a user-calibrated "virtual length" (e.g., 100cm). The firmware dynamically calculates hazard zones relative to this virtual length, providing intuitive feedback without physical contact.
 
-* **Zone 1 (< 33% of length):** 🔴 **Critical Hazard.** High-intensity vibration + Rapid high-pitch alarm (C6/1047Hz).
-* **Zone 2 (33% - 66%):** 🟡 **Warning.** Pulse vibration + Medium-pitch alert.
-* **Zone 3 (66% - 100%):** 🟢 **Detection.** No vibration + Soft low-pitch cue.
+The current firmware implements three distance zones based on the configured `cm` value:
+
+* **Zone 1 (< 33% of length):** Continuous vibration + short tone (~523 Hz).
+* **Zone 2 (33% - 66%):** Pulsed vibration (on/off) + alternating short tones (~523/493 Hz).
+* **Zone 3 (66% - 100%):** Slower pulsed vibration + alternating short tones (~523/493 Hz).
+
+Notes:
+* The default virtual length in the sketch is **30 cm**, and the app’s textbox is initialized to **30**.
+* The sketch uses `pulseIn()` and several `delay()` calls to shape the feedback patterns.
 
 ### 2. Distributed Safety System (SOS)
 I engineered a redundant safety layer to ensure users can always call for help, regardless of internet availability.
-* **Level 1 (GSM Hardware):** A physical SOS button on the cane triggers the SIM900 module to send an SMS via raw AT commands.
-* **Level 2 (App Integration):** The Android app listens for the SOS signal via Bluetooth and triggers a WhatsApp message containing the user's precise GPS coordinates.
+* **Level 1 (GSM Hardware):** A long press of the cane button triggers the SIM900 module to send an SMS via raw AT commands.
+    * The destination number is currently hard-coded in the sketch.
+* **Level 2 (App Integration):** The Android app has an **SOS button** that opens WhatsApp with a pre-filled message containing the user’s current GPS coordinates (plus accuracy) and a Google Maps link.
+    * This is initiated from the phone UI (not from an Arduino-to-app SOS signal in the current code).
 
 ### 3. Serial Command Line Interface (CLI)
 To allow "on-the-fly" calibration without re-flashing the firmware, I implemented a robust Serial CLI. The mobile app acts as a terminal, sending single-byte characters to configure the hardware.
@@ -58,6 +66,9 @@ To allow "on-the-fly" calibration without re-flashing the firmware, I implemente
 | **`c`** | `Current Dist` | Returns real-time sensor reading in cm. |
 | **`v`** | `View Size` | Returns currently calibrated virtual length. |
 | **`b`** | `Uptime` | Returns system uptime (Hours/Mins/Secs). |
+| **`+`** | `Turn On` | Turns the cane on (also used to wake from auto-sleep/off). |
+| **`-`** | `Turn Off` | Turns the cane off. |
+| **`h`** | `Help` | Prints the command list over serial. |
 
 ---
 
@@ -86,7 +97,7 @@ graph TD
 
 ### Distance Logic & Feedback Loop
 
-The firmware avoids blocking `delay()` calls where possible to maintain responsive sensor readings. The feedback intensity is mathematically derived from the user-set `cm` variable.
+The feedback patterns are derived from the user-set `cm` variable.
 
 ```cpp
 // Snippet from sketch_jan04b.ino
@@ -110,7 +121,7 @@ else if (distancia < cm * 2 / 3) {
 
 ### GSM "Handshake" Protocol
 
-Standard libraries for the SIM900 module were unreliable for this specific use case, so I wrote a raw AT command sequence to ensure the SOS message is sent with high priority.
+The sketch uses a raw AT command sequence to send an SOS SMS via SIM900.
 
 ```cpp
 // Manual AT Command Sequence for Reliability
@@ -131,6 +142,17 @@ GPRS.write(0x1a); // End of Message Character
 
 * **Auto-Sleep Mode:** To conserve battery, the system tracks the `interactive` timestamp. If no movement or obstacles are detected for 10 minutes (600 seconds), the system enters a low-power state.
 * **Modular Build:** The prototype was iteratively designed, moving from Tinkercad simulations to a breadboard prototype, and finally to portable layout.
+
+---
+
+## Wiring (as used in the sketch)
+
+* **HC-SR04:** `Trig` = D12, `Echo` = D11
+* **Buzzer:** D9
+* **Vibration motor (via driver/transistor):** D6
+* **Button:** D4
+* **SIM900 (SoftwareSerial):** Arduino D7 = RX (connect to SIM900 TX), Arduino D8 = TX (connect to SIM900 RX)
+* **Bluetooth serial (HC-05/HC-06):** connected to Arduino `Serial` (hardware UART). If you wire it to pins 0/1, you generally cannot use the Serial Monitor at the same time.
 
 ---
 
