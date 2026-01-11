@@ -1,8 +1,9 @@
 # iCane: Smart Virtual Mobility Aid Ecosystem 🦯📱
 
-![Status](https://img.shields.io/badge/Status-Completed-success)
-![Platform](https://img.shields.io/badge/Platform-Arduino%20|%20Android-blue)
-![Language](https://img.shields.io/badge/Language-C++%20|%20MIT%20App%20Inventor-orange)
+![Status](https://img.shields.io/badge/Status-Completed-success?style=flat-square)
+![Competition](https://img.shields.io/badge/Competition-Jugend_Forscht_2021-red?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-Arduino_|_Android-blue?style=flat-square&logo=arduino&logoColor=white)
+![Language](https://img.shields.io/badge/Language-C++%20|%20MIT%20App%20Inventor-orange?style=flat-square&logo=c%2B%2B&logoColor=white)
 
 > **Jugend Forscht 2021 Entry** | *Engineering, Embedded Systems, & IoT*
 
@@ -16,12 +17,10 @@ The system features a distributed architecture where an Arduino-based microcontr
 
 The Android application serves as the control center for the physical cane. It handles high-level logic (GPS tracking, WhatsApp integration) and allows users to calibrate the hardware settings wirelessly.
 
-<p align="center">
-  <img src="./iCaneDashboard.jpg" alt="iCane App Interface" width="250"/>
-  <img src="iCane/assets/oie_transparent(15).png" alt="iCane Logo" width="250"/>
-</p>
-
-*Left: The main control dashboard. Right: App Icon.*
+| **Mobile Dashboard** | **Logo Concept** |
+|:---:|:---:|
+| <img src="./iCaneDashboard.jpg" width="250" alt="iCane App Interface"/> | <img src="iCane/assets/oie_transparent(15).png" width="250" alt="iCane Logo"/> |
+| *High-contrast navigation dashboard* | *iCane concept Logo* |
 
 ---
 
