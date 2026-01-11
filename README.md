@@ -159,3 +159,7 @@ GPRS.write(0x1a); // End of Message Character
 
 * **User Testing:** Tested with visually impaired individuals to refine the haptic feedback patterns, ensuring they were distinct and intuitive.
 * **Engineering Challenge:** The biggest hurdle was managing the `SoftwareSerial` conflicts between the Bluetooth module and the GSM module, which I resolved by implementing a strict state-machine approach to serial communication.
+
+---
+
+*Authored by [Victor Gurbani](https://github.com/victor-gurbani) | 2021*
